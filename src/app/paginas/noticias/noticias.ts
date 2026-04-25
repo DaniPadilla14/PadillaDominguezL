@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ServNoticias } from '../../servicios/noticias';
+import { NoticiaItem, ServNoticias } from '../../servicios/noticias';
 import { RouterModule } from '@angular/router';
 
 
@@ -13,12 +13,16 @@ import { RouterModule } from '@angular/router';
 })
 export class Noticias implements OnInit {
 
-  noticias: any[] = [];
+  noticias: NoticiaItem[] = [];
 
-  constructor(private ServNoticias: ServNoticias){}
+  constructor(private servNoticias: ServNoticias){}
 
   ngOnInit(): void {
-    this.noticias = this.ServNoticias.consultarNoticias();
+    void this.cargarNoticias();
+  }
+
+  private async cargarNoticias(): Promise<void> {
+    this.noticias = await this.servNoticias.consultarNoticias();
   }
 
 }

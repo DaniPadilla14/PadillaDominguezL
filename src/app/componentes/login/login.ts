@@ -44,21 +44,23 @@ export class Login implements OnInit {
     return this.authGoogle.error();
   }
 
-  protected login(): void {
+  protected async login(): Promise<void> {
     this.mensajeGoogle = 'Abriendo Google para iniciar sesion...';
-    this.authGoogle.login();
+    await this.authGoogle.login(this.recordar);
   }
 
   protected alternarClave(): void {
     this.mostrarClave = !this.mostrarClave;
   }
 
-  protected iniciarSesion(): void {
+  protected async iniciarSesion(): Promise<void> {
     this.enviando.set(true);
+    await this.authGoogle.loginConCorreo(this.correo, this.clave, this.recordar);
+    this.enviando.set(false);
 
-    setTimeout(() => {
-      this.enviando.set(false);
+    if (this.authGoogle.autenticado()) {
+      this.mensajeGoogle = `Sesion iniciada con ${this.correo}`;
       void this.router.navigateByUrl('/sesion-iniciada', { replaceUrl: true });
-    }, 1400);
+    }
   }
 }

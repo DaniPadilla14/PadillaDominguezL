@@ -1,6 +1,20 @@
 import { Injectable, signal } from '@angular/core';
+import {
+  GoogleAuthProvider,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  signOut,
+  type User,
+} from 'firebase/auth';
+import {
+  configurarPersistencia,
+  firebaseDisponible,
+  obtenerAuth,
+  proveedorGoogle,
+} from './firebase';
 
-type PerfilGoogle = {
+export type PerfilGoogle = {
   email?: string;
   family_name?: string;
   given_name?: string;
@@ -8,40 +22,6 @@ type PerfilGoogle = {
   picture?: string;
   sub?: string;
 };
-
-type GoogleTokenResponse = {
-  access_token?: string;
-  error?: string;
-  error_description?: string;
-};
-
-type GoogleTokenRequest = {
-  prompt?: string;
-};
-
-type GoogleTokenClient = {
-  callback: ((response: GoogleTokenResponse) => void) | null;
-  requestAccessToken: (overrideConfig?: GoogleTokenRequest) => void;
-};
-
-type GoogleAccounts = {
-  accounts?: {
-    oauth2?: {
-      initTokenClient: (config: {
-        client_id: string;
-        scope: string;
-        callback: (response: GoogleTokenResponse) => void;
-      }) => GoogleTokenClient;
-      revoke: (token: string, done?: () => void) => void;
-    };
-  };
-};
-
-declare global {
-  interface Window {
-    google?: GoogleAccounts;
-  }
-}
 
 @Injectable({
   providedIn: 'root',
@@ -51,62 +31,86 @@ export class AuthGoogle {
   readonly autenticado = signal(false);
   readonly inicializado = signal(false);
   readonly error = signal('');
-
-  private readonly clientId =
-    '824395350675-n2ut8gm7ulja010fv9o88o1krjubd0p8.apps.googleusercontent.com';
-  private readonly perfilStorageKey = 'padilla_google_profile';
-  private readonly tokenStorageKey = 'padilla_google_token';
-  private tokenClient: GoogleTokenClient | null = null;
+  readonly firebaseActivo = signal(firebaseDisponible());
 
   constructor() {
-    this.restaurarSesion();
-    void this.inicializarLoginGmail();
+    this.inicializarAutenticacion();
   }
 
-  async inicializarLoginGmail(): Promise<void> {
-    try {
-      await this.esperarGoogleIdentityServices();
+  private inicializarAutenticacion(): void {
+    const auth = obtenerAuth();
 
-      const oauth2 = window.google?.accounts?.oauth2;
-      if (!oauth2) {
-        throw new Error('Google Identity Services no esta disponible.');
+    if (!auth) {
+      this.error.set(
+        'Firebase no esta configurado todavia. Agrega tus credenciales en src/environments/environment.ts.'
+      );
+      this.inicializado.set(true);
+      return;
+    }
+
+    onAuthStateChanged(auth, (usuario) => {
+      this.actualizarEstado(usuario);
+      this.inicializado.set(true);
+    });
+  }
+
+  async login(recordar = true): Promise<void> {
+    this.error.set('');
+    const auth = obtenerAuth();
+
+    if (!auth) {
+      this.error.set('Firebase Auth no esta configurado.');
+      return;
+    }
+
+    try {
+      await configurarPersistencia(recordar);
+      const resultado = await signInWithPopup(auth, proveedorGoogle);
+      const credencial = GoogleAuthProvider.credentialFromResult(resultado);
+      const usuario = resultado.user;
+
+      if (!usuario) {
+        throw new Error('No se recibio el usuario autenticado.');
       }
 
-      this.tokenClient = oauth2.initTokenClient({
-        client_id: this.clientId,
-        scope: 'openid profile email',
-        callback: (response) => {
-          void this.procesarRespuestaToken(response);
-        },
-      });
+      this.actualizarEstado(usuario);
+      if (!credencial) {
+        console.warn('Se inicio sesion con Google sin una credencial adicional legible.');
+      }
     } catch (error) {
-      console.error('No se pudo inicializar Google Identity Services.', error);
-      this.error.set('No se pudo conectar con Google. Intenta de nuevo.');
-    } finally {
-      this.inicializado.set(true);
+      console.error('No fue posible iniciar sesion con Google.', error);
+      this.error.set('No fue posible iniciar sesion con Google. Revisa tu configuracion de Firebase.');
     }
   }
 
-  login(): void {
+  async loginConCorreo(correo: string, clave: string, recordar = true): Promise<void> {
     this.error.set('');
+    const auth = obtenerAuth();
 
-    if (!this.tokenClient) {
-      this.error.set('Google todavia no esta listo. Intenta otra vez en unos segundos.');
+    if (!auth) {
+      this.error.set('Firebase Auth no esta configurado.');
       return;
     }
 
-    this.tokenClient.requestAccessToken({ prompt: 'select_account' });
+    try {
+      await configurarPersistencia(recordar);
+      const resultado = await signInWithEmailAndPassword(auth, correo, clave);
+      this.actualizarEstado(resultado.user);
+    } catch (error) {
+      console.error('No fue posible iniciar sesion con correo y contrasena.', error);
+      this.error.set('No fue posible iniciar sesion con correo y contrasena.');
+    }
   }
 
-  logout(): void {
-    const token = localStorage.getItem(this.tokenStorageKey);
-    const oauth2 = window.google?.accounts?.oauth2;
+  async logout(): Promise<void> {
+    const auth = obtenerAuth();
 
-    if (token && oauth2) {
-      oauth2.revoke(token, () => this.limpiarSesion());
+    if (!auth) {
+      this.limpiarSesion();
       return;
     }
 
+    await signOut(auth);
     this.limpiarSesion();
   }
 
@@ -114,88 +118,26 @@ export class AuthGoogle {
     return this.perfil();
   }
 
-  private async procesarRespuestaToken(response: GoogleTokenResponse): Promise<void> {
-    if (response.error || !response.access_token) {
-      this.error.set(response.error_description || 'No fue posible iniciar sesion con Google.');
+  private actualizarEstado(usuario: User | null): void {
+    if (!usuario) {
+      this.limpiarSesion();
       return;
     }
 
-    try {
-      const perfil = await this.obtenerPerfilUsuario(response.access_token);
-      this.guardarSesion(perfil, response.access_token);
-      this.error.set('');
-    } catch (error) {
-      console.error('No se pudo obtener el perfil de Google.', error);
-      this.error.set('Google inicio sesion, pero no fue posible leer tu perfil.');
-      this.limpiarSesion();
-    }
-  }
-
-  private async obtenerPerfilUsuario(accessToken: string): Promise<PerfilGoogle> {
-    const respuesta = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
+    this.perfil.set({
+      email: usuario.email ?? undefined,
+      given_name: usuario.displayName?.split(' ')[0],
+      name: usuario.displayName ?? undefined,
+      picture: usuario.photoURL ?? undefined,
+      sub: usuario.uid,
     });
-
-    if (!respuesta.ok) {
-      throw new Error(`No se pudo consultar userinfo: ${respuesta.status}`);
-    }
-
-    return (await respuesta.json()) as PerfilGoogle;
-  }
-
-  private guardarSesion(perfil: PerfilGoogle, accessToken: string): void {
-    localStorage.setItem(this.perfilStorageKey, JSON.stringify(perfil));
-    localStorage.setItem(this.tokenStorageKey, accessToken);
-    this.perfil.set(perfil);
     this.autenticado.set(true);
+    this.error.set('');
   }
 
   private limpiarSesion(): void {
-    localStorage.removeItem(this.perfilStorageKey);
-    localStorage.removeItem(this.tokenStorageKey);
     this.perfil.set(null);
     this.autenticado.set(false);
-  }
-
-  private restaurarSesion(): void {
-    const perfilGuardado = localStorage.getItem(this.perfilStorageKey);
-    if (!perfilGuardado) {
-      return;
-    }
-
-    try {
-      const perfil = JSON.parse(perfilGuardado) as PerfilGoogle;
-      this.perfil.set(perfil);
-      this.autenticado.set(true);
-    } catch {
-      this.limpiarSesion();
-    }
-  }
-
-  private esperarGoogleIdentityServices(): Promise<void> {
-    if (window.google?.accounts?.oauth2) {
-      return Promise.resolve();
-    }
-
-    return new Promise((resolve, reject) => {
-      let intentos = 0;
-      const maxIntentos = 80;
-
-      const timer = window.setInterval(() => {
-        if (window.google?.accounts?.oauth2) {
-          window.clearInterval(timer);
-          resolve();
-          return;
-        }
-
-        intentos += 1;
-        if (intentos >= maxIntentos) {
-          window.clearInterval(timer);
-          reject(new Error('Google Identity Services no cargo a tiempo.'));
-        }
-      }, 250);
-    });
+    this.error.set('');
   }
 }

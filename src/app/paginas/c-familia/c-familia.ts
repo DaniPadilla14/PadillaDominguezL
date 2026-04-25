@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ServFamilia } from '../../servicios/familia';
+import { Familiar, ServFamilia } from '../../servicios/familia';
 
 @Component({
   selector: 'app-c-familia',
@@ -11,12 +11,15 @@ import { ServFamilia } from '../../servicios/familia';
 })
 export class CFamilia implements OnInit {
 
-  familia: any[] = [];  
+  familia: Familiar[] = [];  
 
   constructor(private servicioFamilia: ServFamilia) {}
 
   ngOnInit(): void {
-    this.familia = this.servicioFamilia.consultarFamilia();
-    console.log(this.familia);
+    void this.cargarFamilia();
+  }
+
+  private async cargarFamilia(): Promise<void> {
+    this.familia = await this.servicioFamilia.consultarFamilia();
   }
 }

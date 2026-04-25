@@ -1,11 +1,21 @@
 import { Injectable } from '@angular/core';
+import { collection, getDocs, orderBy, query } from 'firebase/firestore';
+import { firebaseDisponible, obtenerFirestore } from './firebase';
+
+export type NoticiaItem = {
+  id: number;
+  titulo: string;
+  descripcion: string;
+  fecha: string;
+  tipo: string;
+};
 
 @Injectable({
   providedIn: 'root'
 })
 export class ServNoticias {
 
-  arregloNoticias: any[] = [
+  private readonly arregloNoticias: NoticiaItem[] = [
 
     {
       id: 1,
@@ -33,8 +43,35 @@ export class ServNoticias {
 
   ];
 
-  consultarNoticias(){
-    return this.arregloNoticias;
+  async consultarNoticias(): Promise<NoticiaItem[]> {
+    const db = obtenerFirestore();
+
+    if (!db || !firebaseDisponible()) {
+      return this.arregloNoticias;
+    }
+
+    try {
+      const noticiasRef = query(collection(db, 'noticias'), orderBy('id', 'asc'));
+      const respuesta = await getDocs(noticiasRef);
+
+      if (respuesta.empty) {
+        return this.arregloNoticias;
+      }
+
+      return respuesta.docs.map((doc) => {
+        const data = doc.data() as Partial<NoticiaItem>;
+        return {
+          id: Number(data.id ?? doc.id),
+          titulo: data.titulo ?? '',
+          descripcion: data.descripcion ?? '',
+          fecha: data.fecha ?? '',
+          tipo: data.tipo ?? '',
+        };
+      });
+    } catch (error) {
+      console.error('No fue posible consultar noticias en Firestore.', error);
+      return this.arregloNoticias;
+    }
   }
 
 }

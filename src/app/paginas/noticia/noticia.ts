@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
-import { ServNoticias } from '../../servicios/noticias';
+import { NoticiaItem, ServNoticias } from '../../servicios/noticias';
 
 @Component({
   selector: 'app-noticia',
@@ -12,7 +12,7 @@ import { ServNoticias } from '../../servicios/noticias';
 })
 export class Noticia implements OnInit {
 
-  noticia: any;
+  noticia?: NoticiaItem;
 
   constructor(
     private route: ActivatedRoute,
@@ -20,11 +20,13 @@ export class Noticia implements OnInit {
   ) {}
 
  ngOnInit(): void {
+  void this.cargarNoticia();
+ }
 
+ private async cargarNoticia(): Promise<void> {
   const id = Number(this.route.snapshot.paramMap.get('id'));
-
-  const noticias = this.servicioNoticias.consultarNoticias();
-  this.noticia = noticias.find(n => n.id === id);
+  const noticias = await this.servicioNoticias.consultarNoticias();
+  this.noticia = noticias.find((n) => n.id === id);
 
   if (!this.noticia) {
     console.error('Noticia no encontrada');
