@@ -24,8 +24,11 @@ export class Login implements OnInit {
     private router: Router
   ) {
     effect(() => {
-      if (this.authGoogle.autenticado()) {
-        void this.router.navigate(['/familia']);
+      const authLista = this.authGoogle.inicializado();
+      const autenticado = this.authGoogle.autenticado();
+
+      if (authLista && autenticado) {
+        void this.router.navigateByUrl('/familia', { replaceUrl: true });
       }
     });
   }
@@ -51,7 +54,7 @@ export class Login implements OnInit {
 
     setTimeout(() => {
       this.enviando.set(false);
-      void this.router.navigate(['/familia']);
+      void this.router.navigateByUrl('/familia', { replaceUrl: true });
     }, 1400);
   }
 }

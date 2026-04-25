@@ -15,6 +15,7 @@ type PerfilGoogle = {
 export class AuthGoogle {
   readonly perfil = signal<PerfilGoogle | null>(null);
   readonly autenticado = signal(false);
+  readonly inicializado = signal(false);
 
   constructor(private oauthServ: OAuthService) {
     void this.inicializarLoginGmail();
@@ -39,6 +40,8 @@ export class AuthGoogle {
       await this.oauthServ.loadDiscoveryDocumentAndTryLogin();
     } catch (error) {
       console.error('No se pudo completar el login con Google.', error);
+    } finally {
+      this.inicializado.set(true);
     }
 
     this.actualizarEstadoSesion();
