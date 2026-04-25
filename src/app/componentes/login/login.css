@@ -114,6 +114,12 @@
   font-weight: 500;
 }
 
+.google-login-error {
+  color: #b42318;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
 .divider::before,
 .divider::after {
   content: '';

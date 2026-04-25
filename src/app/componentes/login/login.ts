@@ -40,8 +40,12 @@ export class Login implements OnInit {
     }
   }
 
+  protected get errorGoogle(): string {
+    return this.authGoogle.error();
+  }
+
   protected login(): void {
-    this.mensajeGoogle = 'Redirigiendo a Google para iniciar sesion...';
+    this.mensajeGoogle = 'Abriendo Google para iniciar sesion...';
     this.authGoogle.login();
   }
 
