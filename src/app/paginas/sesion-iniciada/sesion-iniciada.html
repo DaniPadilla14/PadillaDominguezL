@@ -1,0 +1,31 @@
+<section class="session-page">
+  <div class="container py-5">
+    <div class="session-card mx-auto shadow-lg">
+      <div class="session-badge">Acceso confirmado</div>
+
+      @if (authGoogle.perfil(); as perfil) {
+        @if (perfil.picture) {
+          <img
+            [src]="perfil.picture"
+            [alt]="'Foto de ' + (perfil.name || 'la cuenta de Google')"
+            class="session-avatar">
+        }
+
+        <h1>Ya iniciaste sesion</h1>
+        <p class="session-copy">
+          Entraste con la cuenta
+          <strong>{{ perfil.name || perfil.email }}</strong>.
+        </p>
+      } @else {
+        <h1>Sesion iniciada</h1>
+        <p class="session-copy">
+          Tu acceso fue validado correctamente.
+        </p>
+      }
+
+      <a class="btn session-button" routerLink="/familia">
+        Ir a familia
+      </a>
+    </div>
+  </div>
+</section>

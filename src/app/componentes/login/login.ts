@@ -28,7 +28,7 @@ export class Login implements OnInit {
       const autenticado = this.authGoogle.autenticado();
 
       if (authLista && autenticado) {
-        void this.router.navigateByUrl('/familia', { replaceUrl: true });
+        void this.router.navigateByUrl('/sesion-iniciada', { replaceUrl: true });
       }
     });
   }
@@ -54,7 +54,7 @@ export class Login implements OnInit {
 
     setTimeout(() => {
       this.enviando.set(false);
-      void this.router.navigateByUrl('/familia', { replaceUrl: true });
+      void this.router.navigateByUrl('/sesion-iniciada', { replaceUrl: true });
     }, 1400);
   }
 }
