@@ -1,0 +1,70 @@
+<nav class="navbar navbar-expand-lg navbar-dark nav-shell">
+  <div class="container-fluid">
+
+    
+    <a class="navbar-brand d-flex align-items-center" routerLink="/">
+      <img src="/terraria1.jpg"
+           alt="Logo"
+           width="40"
+           height="40"
+           class="me-2">
+    </a>
+
+    
+    <button class="navbar-toggler" type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#navbarContent"
+      aria-controls="navbarContent"
+      aria-expanded="false"
+      aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    
+    <div class="collapse navbar-collapse" id="navbarContent">
+
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/familia">Familia</a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/acercade">Acerca de</a>
+        </li>
+        
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/noticias">Noticias</a>
+        </li>
+      </ul>
+
+      <form class="d-flex align-items-center gap-3" role="search">
+        <input class="form-control me-2"
+               type="search"
+               placeholder="Buscar..."
+               aria-label="Search">
+        <button class="btn nav-search-button" type="submit">
+          Buscar
+        </button>
+
+        @if (authGoogle.perfil(); as perfil) {
+          <div class="profile-chip">
+            @if (perfil.picture) {
+              <img
+                [src]="perfil.picture"
+                [alt]="'Foto de ' + (perfil.name || 'la cuenta de Google')"
+                class="profile-avatar">
+            }
+            <span class="profile-name">
+              {{ perfil.name || perfil.given_name || perfil.email }}
+            </span>
+          </div>
+        } @else {
+          <a class="btn nav-login-button" routerLink="/login">
+            Iniciar sesion
+          </a>
+        }
+      </form>
+
+    </div>
+  </div>
+</nav>

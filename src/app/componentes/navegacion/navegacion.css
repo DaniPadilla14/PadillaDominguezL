@@ -1,0 +1,106 @@
+.nav-shell {
+  background:
+    linear-gradient(160deg, rgba(8, 30, 50, 0.97), rgba(20, 49, 77, 0.94)),
+    linear-gradient(135deg, #0f2740, #1a3855);
+  box-shadow: 0 14px 32px rgba(8, 30, 50, 0.22);
+}
+
+.navbar-brand img {
+  border-radius: 12px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.18);
+}
+
+.nav-link {
+  color: rgba(255, 255, 255, 0.82);
+  font-weight: 600;
+  transition:
+    color 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.nav-link:hover,
+.nav-link:focus,
+.nav-link.active {
+  color: #ffffff;
+}
+
+.form-control {
+  min-width: 220px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.form-control::placeholder {
+  color: rgba(255, 255, 255, 0.68);
+}
+
+.form-control:focus {
+  border-color: rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+  box-shadow: 0 0 0 0.2rem rgba(213, 221, 229, 0.16);
+}
+
+.nav-search-button {
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.nav-search-button:hover,
+.nav-search-button:focus {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+}
+
+.nav-login-button {
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 12px;
+  background: #ffffff;
+  color: #102a43;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.nav-login-button:hover,
+.nav-login-button:focus {
+  background: #f4f7fa;
+  color: #102a43;
+}
+
+.profile-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.35rem 0.8rem 0.35rem 0.35rem;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.profile-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+}
+
+.profile-name {
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+@media (max-width: 991px) {
+  .form-control {
+    min-width: 0;
+  }
+}

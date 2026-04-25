@@ -1,0 +1,25 @@
+<div class="container mt-4" *ngIf="noticia">
+
+  <div class="card shadow">
+    <img 
+      src="https://via.placeholder.com/800x400"
+      class="card-img-top"
+      alt="Imagen noticia"
+    >
+
+    <div class="card-body">
+      <h2 class="card-title">
+        {{ noticia.titulo }}
+      </h2>
+
+      <p class="card-text">
+        {{ noticia.descripcion }}
+      </p>
+
+      <a routerLink="/noticias" class="btn btn-secondary">
+        Volver
+      </a>
+    </div>
+  </div>
+
+</div>
